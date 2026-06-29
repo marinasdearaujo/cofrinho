@@ -188,9 +188,94 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
 .iconbtn{background:var(--card2);border:1px solid var(--line);width:34px;height:34px;border-radius:10px;display:grid;place-items:center;cursor:pointer;font-size:15px}
 .note{font-size:12px;color:var(--mut2);line-height:1.5;margin-top:6px}
 .linkbtn{color:var(--cyan);font-size:13px;font-weight:600;cursor:pointer;background:none;border:none;padding:0}
+
+/* ===== SIDEBAR (desktop) ===== */
+#sidebar{display:none}
+
+/* ===== DESKTOP / ERP (≥1000px) ===== */
+@media(min-width:1000px){
+  body{padding-bottom:0}
+  .fab,nav{display:none!important}
+  #sidebar{display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;width:236px;z-index:60;
+    background:var(--bg2);border-right:1px solid var(--line);padding:20px 14px}
+  #sidebar .slogo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;padding:2px 8px 6px;letter-spacing:-.3px}
+  #sidebar .slogo .pig{font-size:24px}
+  #sidebar .sub{font-size:11.5px;color:var(--mut2);padding:0 8px 16px;border-bottom:1px solid var(--line);margin-bottom:14px}
+  #sidebar .sbtn{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:13px;border:none;
+    background:var(--grad2);color:#fff;font-weight:700;font-size:14.5px;cursor:pointer;margin-bottom:16px;box-shadow:0 8px 22px rgba(255,92,138,.3)}
+  #sidebar .sbtn:active{transform:scale(.98)}
+  #sidebar .snav{display:flex;flex-direction:column;gap:3px}
+  #sidebar .sn{display:flex;align-items:center;gap:13px;padding:12px 14px;border-radius:12px;cursor:pointer;
+    color:var(--mut);font-weight:600;font-size:14.5px;transition:.15s;border:1px solid transparent}
+  #sidebar .sn .si{font-size:19px;width:22px;text-align:center}
+  #sidebar .sn:hover{background:var(--card)}
+  #sidebar .sn.on{background:var(--card);color:var(--txt);border-color:var(--line)}
+  #sidebar .sn.on .si{filter:drop-shadow(0 0 8px rgba(34,211,238,.5))}
+  #sidebar .sfoot{margin-top:auto;display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--mut)}
+  #sidebar .schip{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:10px 12px;font-weight:700;font-size:12.5px}
+
+  header{margin-left:236px;max-width:none;padding:20px 34px 6px;background:transparent;position:static}
+  header .lvlchip{display:none}
+  .app{margin-left:236px;max-width:1240px;padding:6px 34px 50px}
+
+  /* dashboard em tiles */
+  #v-home{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+  #v-home .block{flex:1 1 330px;min-width:300px;margin:0}
+  #v-home .block.wide{flex:1 1 100%}
+  #v-home .card,#v-home .mini{margin:0}
+  #v-home .sec-title{margin:0 2px 10px}
+  .hero .bal{font-size:40px}
+
+  /* metas em grade */
+  #v-goals #goalsList{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+  #v-goals #goalsList .card{margin:0}
+  #v-you{max-width:780px}
+  #v-trans,#v-bills{max-width:none}
+  .bgrid{grid-template-columns:repeat(6,1fr)}
+
+  /* modais centrados (em vez de bottom sheet) */
+  .sheet{position:fixed;top:50%;left:50%;right:auto;bottom:auto;width:min(460px,92vw);margin:0;
+    border-radius:20px;border:1px solid var(--line);transform:translate(-50%,-44%);opacity:0;pointer-events:none;
+    transition:transform .22s cubic-bezier(.2,.9,.3,1),opacity .2s}
+  .sheet.on{transform:translate(-50%,-50%);opacity:1;pointer-events:auto}
+  .grab{display:none}
+  .sheet h3{margin-top:6px}
+
+  /* tabelas ERP */
+  table.erp{width:100%;border-collapse:collapse;font-size:13.5px}
+  table.erp th{text-align:left;color:var(--mut2);font-weight:700;font-size:11px;text-transform:uppercase;
+    letter-spacing:.5px;padding:9px 11px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card)}
+  table.erp td{padding:10px 11px;border-bottom:1px solid var(--line);vertical-align:middle}
+  table.erp tbody tr{cursor:pointer;transition:.1s}
+  table.erp tbody tr:hover td{background:var(--card2)}
+  table.erp td.r,table.erp th.r{text-align:right;font-weight:700;white-space:nowrap}
+  table.erp td.c,table.erp th.c{text-align:center}
+  table.erp .mut{color:var(--mut)}
+  .tablecard{padding:6px 6px}
+}
+@media(min-width:1480px){ #v-home .block{flex-basis:300px} }
 </style>
 </head>
 <body>
+
+<aside id="sidebar">
+  <div class="slogo"><span class="pig">🐷</span> Cofrinho</div>
+  <div class="sub">Finanças da casa</div>
+  <button class="sbtn" onclick="openTx()">＋ Novo lançamento</button>
+  <div class="snav">
+    <div class="sn on" data-v="home" onclick="go('home')"><span class="si">🏠</span> Início</div>
+    <div class="sn" data-v="trans" onclick="go('trans')"><span class="si">💸</span> Extrato</div>
+    <div class="sn" data-v="bills" onclick="go('bills')"><span class="si">📅</span> Contas & Cartões</div>
+    <div class="sn" data-v="budget" onclick="go('budget')"><span class="si">🎯</span> Orçamento</div>
+    <div class="sn" data-v="goals" onclick="go('goals')"><span class="si">🏆</span> Metas & Recompensas</div>
+    <div class="sn" data-v="you" onclick="go('you')"><span class="si">⭐</span> Você</div>
+  </div>
+  <div class="sfoot">
+    <div class="schip"><span>🔥 Sequência</span><span id="sStreak">0 dias</span></div>
+    <div class="schip"><span id="sLevel">Iniciante</span><span id="sXp">0 XP</span></div>
+  </div>
+</aside>
 
 <header>
   <div class="hrow">
@@ -206,44 +291,58 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
 
   <!-- ===== INÍCIO ===== -->
   <section id="v-home" class="view">
-    <div class="card hero">
-      <span class="eye" id="eyeBtn" onclick="toggleEye()">👁️</span>
-      <div class="lbl">Saldo do mês</div>
-      <div class="bal" id="heroBal">R$ 0,00</div>
-      <div class="sub">
-        <span>↑ <b id="heroIn">R$ 0</b> entrou</span>
-        <span>↓ <b id="heroOut">R$ 0</b> saiu</span>
+    <div class="block">
+      <div class="card hero">
+        <span class="eye" id="eyeBtn" onclick="toggleEye()">👁️</span>
+        <div class="lbl">Saldo do mês</div>
+        <div class="bal" id="heroBal">R$ 0,00</div>
+        <div class="sub">
+          <span>↑ <b id="heroIn">R$ 0</b> entrou</span>
+          <span>↓ <b id="heroOut">R$ 0</b> saiu</span>
+        </div>
       </div>
     </div>
 
-    <div class="mini">
-      <div class="card">
-        <div class="mlbl">Orçamento do mês</div>
-        <div class="mval" id="budgetVal">—</div>
-        <div class="bar" id="budgetBar"><i style="width:0%"></i></div>
-        <div class="note" id="budgetNote" onclick="openBudget()" style="cursor:pointer">Toque pra definir 🎯</div>
-      </div>
-      <div class="card">
-        <div class="mlbl">Próxima conta</div>
-        <div class="mval" id="nextBillVal">—</div>
-        <div class="note" id="nextBillNote">Tudo em dia ✨</div>
+    <div class="block">
+      <div class="mini">
+        <div class="card">
+          <div class="mlbl">Orçamento do mês</div>
+          <div class="mval" id="budgetVal">—</div>
+          <div class="bar" id="budgetBar"><i style="width:0%"></i></div>
+          <div class="note" id="budgetNote" onclick="openBudget()" style="cursor:pointer">Toque pra definir 🎯</div>
+        </div>
+        <div class="card">
+          <div class="mlbl">Próxima conta</div>
+          <div class="mval" id="nextBillVal">—</div>
+          <div class="note" id="nextBillNote">Tudo em dia ✨</div>
+        </div>
       </div>
     </div>
 
-    <div class="sec-title">Receitas fixas do mês <a onclick="openIncome()">＋ nova</a></div>
-    <div class="card" id="incomeCard"></div>
+    <div class="block">
+      <div class="sec-title">Desafio do mês <a onclick="go('budget')">orçamento →</a></div>
+      <div class="card flat" id="challengeCard"></div>
+    </div>
 
-    <div class="sec-title">Desafio do mês <a onclick="go('goals')">metas →</a></div>
-    <div class="card flat" id="challengeCard"></div>
+    <div class="block">
+      <div class="sec-title">Receitas fixas do mês <a onclick="openIncome()">＋ nova</a></div>
+      <div class="card" id="incomeCard"></div>
+    </div>
 
-    <div class="sec-title">Contas a pagar <a onclick="go('bills')">ver todas →</a></div>
-    <div class="card" id="homeBills"></div>
+    <div class="block">
+      <div class="sec-title">Contas a pagar <a onclick="go('bills')">ver todas →</a></div>
+      <div class="card" id="homeBills"></div>
+    </div>
 
-    <div class="sec-title">Últimos lançamentos <a onclick="go('trans')">ver tudo →</a></div>
-    <div class="card" id="homeTrans"></div>
+    <div class="block">
+      <div class="sec-title">Últimos lançamentos <a onclick="go('trans')">ver tudo →</a></div>
+      <div class="card" id="homeTrans"></div>
+    </div>
 
-    <div class="sec-title">Pra onde foi seu dinheiro</div>
-    <div class="card" id="donutCard"></div>
+    <div class="block">
+      <div class="sec-title">Pra onde foi seu dinheiro</div>
+      <div class="card" id="donutCard"></div>
+    </div>
   </section>
 
   <!-- ===== LANÇAMENTOS ===== -->
@@ -269,9 +368,16 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
     <div class="card" id="billsPaid"></div>
   </section>
 
+  <!-- ===== ORÇAMENTO POR CATEGORIA ===== -->
+  <section id="v-budget" class="view hide">
+    <div class="card" id="budgetScore"></div>
+    <div class="sec-title">Quanto ainda posso gastar este mês <a onclick="openCatBudget()">✏️ editar limites</a></div>
+    <div id="catEnvelopes"></div>
+  </section>
+
   <!-- ===== METAS ===== -->
   <section id="v-goals" class="view hide">
-    <button class="btn" onclick="openGoal()" style="margin-bottom:14px">＋ Nova meta</button>
+    <button class="btn" onclick="openGoal()" style="margin-bottom:14px">＋ Nova meta / recompensa</button>
     <div id="goalsList"></div>
   </section>
 
@@ -316,7 +422,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
   <div class="nav-i on" data-v="home" onclick="go('home')"><span class="ni">🏠</span>Início</div>
   <div class="nav-i" data-v="trans" onclick="go('trans')"><span class="ni">💸</span>Extrato</div>
   <div class="nav-i" data-v="bills" onclick="go('bills')"><span class="ni">📅</span>Contas</div>
-  <div class="nav-i" data-v="goals" onclick="go('goals')"><span class="ni">🎯</span>Metas</div>
+  <div class="nav-i" data-v="budget" onclick="go('budget')"><span class="ni">🎯</span>Orçam.</div>
+  <div class="nav-i" data-v="goals" onclick="go('goals')"><span class="ni">🏆</span>Metas</div>
   <div class="nav-i" data-v="you" onclick="go('you')"><span class="ni">⭐</span>Você</div>
 </div></nav>
 
@@ -438,6 +545,14 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
   <button class="btn" style="margin-top:16px" onclick="saveBudget()">Definir orçamento</button>
 </div>
 
+<div class="sheet" id="sheet-catbudget">
+  <div class="grab"></div>
+  <h3>Limites por categoria</h3>
+  <div class="note" style="margin-top:0">Quanto vocês querem gastar no máximo por mês em cada categoria. Eu mostro quanto ainda dá pra gastar conforme o mês passa 🎯</div>
+  <div id="catBudgetInputs"></div>
+  <button class="btn" style="margin-top:16px" onclick="saveCatBudgets()">Salvar limites</button>
+</div>
+
 <div class="toast" id="toast"></div>
 <canvas id="confetti" class="hide"></canvas>
 
@@ -487,11 +602,13 @@ const BADGES = [
   {k:'blue',    e:'💙', n:'Mês no azul',       d:'Gastou < ganhou'},
   {k:'save1k',  e:'💰', n:'Primeiro milhar',   d:'R$1.000 guardados'},
   {k:'log50',   e:'📝', n:'Disciplinada',      d:'50 lançamentos'},
+  {k:'balanced',e:'⚖️', n:'Mês equilibrado',   d:'Tudo no verde'},
+  {k:'reward',  e:'🍷', n:'Recompensa!',        d:'Mês fechado no verde'},
 ];
 
 const DEFAULT = {
-  tx:[], bills:[], goals:[], incomes:[], cards:[], budget:0,
-  xp:0, streak:0, lastDay:null, badges:[], rewards:[],
+  tx:[], bills:[], goals:[], incomes:[], cards:[], budget:0, catBudgets:{},
+  xp:0, streak:0, lastDay:null, badges:[], rewards:[], balancedMonths:[],
   eye:true, seeded:false
 };
 let S = load();
@@ -524,11 +641,12 @@ function dateLabel(iso){ const d=new Date(iso+'T00:00'); return d.toLocaleDateSt
 
 /* ============ NAV ============ */
 let cur='home';
+const isWide=()=>window.matchMedia('(min-width:1000px)').matches;
 function go(v){
   cur=v;
-  ['home','trans','bills','goals','you'].forEach(x=>{
-    document.getElementById('v-'+x).classList.toggle('hide',x!==v);
-    document.querySelector(`.nav-i[data-v="${x}"]`).classList.toggle('on',x===v);
+  ['home','trans','bills','budget','goals','you'].forEach(x=>{
+    const el=document.getElementById('v-'+x); if(el) el.classList.toggle('hide',x!==v);
+    document.querySelectorAll(`[data-v="${x}"]`).forEach(n=>n.classList.toggle('on',x===v));
   });
   window.scrollTo(0,0);
   render();
@@ -816,11 +934,18 @@ function render(){
   if(cur==='home'){ renderHome(); renderIncomes(); }
   if(cur==='trans') renderTrans();
   if(cur==='bills'){ renderCardsSummary(); renderBills(); }
+  if(cur==='budget') renderBudget();
   if(cur==='goals') renderGoals();
   if(cur==='you') renderYou();
+  syncSidebar();
   // mês no azul (checa sempre)
   const m=monthTotals(curMonth());
   if(m.in>0 && m.in>m.out && m.out>0) unlock('blue');
+}
+function syncSidebar(){
+  const li=levelInfo();
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('sStreak',S.streak+' dias'); set('sXp',S.xp+' XP'); set('sLevel',li.name);
 }
 
 function monthTotals(mk){
@@ -947,22 +1072,44 @@ function renderTrans(){
   document.getElementById('tfIn').textContent=fmtShort(inc);
   document.getElementById('tfOut').textContent=fmtShort(exp);
   const el=document.getElementById('transList');
-  el.innerHTML = list.length?list.map(txRow).join(''):`<div class="empty"><span class="em">📭</span>Nada por aqui ainda</div>`;
+  if(isWide()) el.innerHTML = txTable(list);
+  else el.innerHTML = list.length?list.map(txRow).join(''):`<div class="empty"><span class="em">📭</span>Nada por aqui ainda</div>`;
 }
 function setTF(k){ tFilter=k; renderTrans(); }
+function txTable(list){
+  if(!list.length) return `<div class="empty"><span class="em">📭</span>Nada por aqui ainda</div>`;
+  return `<table class="erp"><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Cartão/Origem</th><th class="r">Valor</th></tr></thead><tbody>`+
+    list.map(t=>{const c=catMap[t.cat]||{e:'✨',n:'Outros'};const inc=t.type==='income';
+      return `<tr onclick='editTx("${t.id}")'><td class="mut">${dateLabel(t.date)}</td><td>${esc(t.desc||c.n)}</td><td>${c.e} ${c.n}</td><td class="mut">${t.card?esc(cardName(t.card)):'—'}</td><td class="r ${inc?'up':'down'}">${inc?'+':'−'} ${fmt(t.amount)}</td></tr>`;}).join('')+
+    `</tbody></table>`;
+}
 function mLabel(mk){ const[y,m]=mk.split('-'); return ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][+m-1]+'/'+y.slice(2); }
 
 /* ---- CONTAS VIEW ---- */
 function renderBills(){
   const open=S.bills.filter(b=>!b.paid).sort((a,b)=>a.due.localeCompare(b.due));
   const paid=S.bills.filter(b=>b.paid).sort((a,b)=>(b.paidDate||'').localeCompare(a.paidDate||''));
-  document.getElementById('billsOpen').innerHTML=open.length?open.map(billRow).join(''):`<div class="empty"><span class="em">🎉</span>Sem contas pendentes</div>`;
-  document.getElementById('billsPaid').innerHTML=paid.length?paid.slice(0,15).map(b=>{
-    const c=catMap[b.cat]||{e:'📄'};
-    return `<div class="li"><div class="ico">${c.e}</div>
-      <div class="mid"><div class="t1">${esc(b.name)}</div><div class="t2"><span class="tag ok">paga ${b.paidDate?dateLabel(b.paidDate):''}</span></div></div>
-      <div class="amt">${fmtShort(b.amount)}</div></div>`;
-  }).join(''):`<div class="empty"><span class="em">📋</span>Nenhuma paga ainda</div>`;
+  const wide=isWide();
+  document.getElementById('billsOpen').innerHTML=wide?billsTable(open,false):
+    (open.length?open.map(billRow).join(''):`<div class="empty"><span class="em">🎉</span>Sem contas pendentes</div>`);
+  document.getElementById('billsPaid').innerHTML=wide?billsTable(paid.slice(0,30),true):
+    (paid.length?paid.slice(0,15).map(b=>{const c=catMap[b.cat]||{e:'📄'};
+      return `<div class="li"><div class="ico">${c.e}</div>
+        <div class="mid"><div class="t1">${esc(b.name)}</div><div class="t2"><span class="tag ok">paga ${b.paidDate?dateLabel(b.paidDate):''}</span></div></div>
+        <div class="amt">${fmtShort(b.amount)}</div></div>`;}).join(''):`<div class="empty"><span class="em">📋</span>Nenhuma paga ainda</div>`);
+}
+function billsTable(list,isPaid){
+  if(!list.length) return `<div class="empty"><span class="em">${isPaid?'📋':'🎉'}</span>${isPaid?'Nenhuma paga ainda':'Sem contas pendentes'}</div>`;
+  return `<table class="erp"><thead><tr><th>Conta</th><th>Parcela</th><th>${isPaid?'Paga':'Vence'}</th><th>Cartão/Origem</th><th>Categoria</th><th class="r">Valor</th>${isPaid?'':'<th></th>'}</tr></thead><tbody>`+
+    list.map(b=>{const c=catMap[b.cat]||{e:'📄',n:''};
+      return `<tr><td onclick='openBillById("${b.id}")' style="cursor:pointer;font-weight:600">${esc(b.name)}</td>`+
+        `<td>${b.pTotal>0?`<span class="tag soon">${b.pAtual}/${b.pTotal}x</span>`:(b.repeat?'🔁':'—')}</td>`+
+        `<td class="mut">${isPaid?(b.paidDate?dateLabel(b.paidDate):''):dueText(b.due)}</td>`+
+        `<td class="mut">${b.card?esc(cardName(b.card)):'—'}</td>`+
+        `<td>${c.e} ${c.n}</td>`+
+        `<td class="r">${fmt(b.amount)}</td>`+
+        `${isPaid?'':`<td class="c"><button class="chk" onclick='payBill("${b.id}")'>Pagar</button></td>`}</tr>`;}).join('')+
+    `</tbody></table>`;
 }
 function openBillById(id){ openBill(S.bills.find(b=>b.id===id)); }
 
@@ -1040,6 +1187,61 @@ function renderDonut(){
     <div class="dleg">${entries.map((e,i)=>{const c=catMap[e[0]]||{e:'✨',n:e[0]};
       return `<div class="dl"><span class="dot" style="background:${colors[i]}"></span>${c.e} ${c.n}<span class="dv">${Math.round(e[1]/total*100)}%</span></div>`;}).join('')}</div>
   </div>`;
+}
+
+/* ============ ORÇAMENTO POR CATEGORIA (envelopes + gamificação) ============ */
+function catSpentMonth(mk){
+  mk=mk||curMonth(); const by={};
+  S.tx.forEach(t=>{ if(t.type==='expense'&&monthKey(t.date)===mk) by[t.cat]=(by[t.cat]||0)+t.amount; });
+  return by;
+}
+function renderBudget(){
+  const buds=S.catBudgets||{};
+  const keys=Object.keys(buds).filter(k=>buds[k]>0);
+  const score=document.getElementById('budgetScore'), env=document.getElementById('catEnvelopes');
+  if(!keys.length){
+    score.innerHTML=`<div class="empty"><span class="em">🎯</span>Defina um limite por categoria pra começar o jogo do equilíbrio do mês</div><button class="btn" onclick="openCatBudget()">Definir limites</button>`;
+    env.innerHTML=''; return;
+  }
+  const spent=catSpentMonth();
+  let green=0,over=0,totalB=0,totalS=0;
+  keys.forEach(k=>{ totalB+=buds[k]; const s=spent[k]||0; totalS+=s; (s<=buds[k]?green++:over++); });
+  const pct=totalB?Math.min(100,Math.round(totalS/totalB*100)):0;
+  const allGreen=over===0;
+  if(allGreen && keys.length>=4 && totalS>0) unlock('balanced');
+  const rw=S.monthReward||'';
+  score.innerHTML=`
+    <div class="li" style="border:none;padding:0 0 8px">
+      <div class="ico" style="background:${allGreen?'rgba(52,224,161,.15)':'rgba(255,169,77,.15)'};font-size:22px">${allGreen?'🟢':'⚖️'}</div>
+      <div class="mid"><div class="t1">Equilíbrio do mês — ${green}/${keys.length} no verde</div>
+      <div class="t2">Gasto ${fmtShort(totalS)} de ${fmtShort(totalB)} orçado${over?` • ${over} categoria(s) estourou`:' • tudo no controle! 🎉'}</div></div>
+      <div class="amt ${allGreen?'up':''}">${pct}%</div>
+    </div>
+    <div class="bar ${pct>=90?'warn':''}"><i style="width:${pct}%"></i></div>
+    <div class="note" style="margin-top:10px">🎁 Recompensa se fechar o mês no verde: <b>${rw?esc(rw):''}</b> <span class="linkbtn" onclick="setMonthReward()">${rw?'trocar':'definir (ex: jantar fora 🍷)'}</span></div>`;
+  const rows=keys.map(k=>({k,b:buds[k],s:spent[k]||0})).sort((a,b)=>(b.s/b.b)-(a.s/a.b));
+  env.innerHTML=rows.map(({k,b,s})=>{
+    const c=catMap[k]||{e:'✨',n:k}; const rem=b-s; const p=Math.min(100,Math.round(s/b*100));
+    return `<div class="card" style="padding:14px;margin-bottom:12px">
+      <div class="li" style="border:none;padding:0 0 8px">
+        <div class="ico">${c.e}</div>
+        <div class="mid"><div class="t1">${c.n}</div><div class="t2">${fmt(s)} de ${fmt(b)}</div></div>
+        <div class="amt ${rem<0?'down':'up'}">${rem<0?'estourou '+fmtShort(-rem):'pode +'+fmtShort(rem)}</div>
+      </div>
+      <div class="bar ${p>=80?'warn':''}"><i style="width:${p}%"></i></div>
+    </div>`;
+  }).join('');
+}
+function setMonthReward(){ const r=prompt('Recompensa do casal se fecharem o mês no verde:', S.monthReward||'Jantar fora 🍷'); if(r!=null){ S.monthReward=r.trim(); save(); render(); } }
+function openCatBudget(){
+  const el=document.getElementById('catBudgetInputs'); const b=S.catBudgets||{};
+  el.innerHTML=CATS.map(c=>`<label class="fl" style="margin:12px 2px 5px">${c.e} ${c.n}</label>
+    <input data-cat="${c.k}" type="text" inputmode="decimal" placeholder="sem limite" value="${b[c.k]?fmt(b[c.k]):''}" oninput="maskMoney(this)">`).join('');
+  show('sheet-catbudget');
+}
+function saveCatBudgets(){
+  const out={}; document.querySelectorAll('#catBudgetInputs input').forEach(i=>{ const v=parseMoney(i.value); if(v>0) out[i.dataset.cat]=v; });
+  S.catBudgets=out; unlock('budget'); save(); closeSheet(); render(); toast('Limites salvos 🎯');
 }
 
 /* ---- editar lançamento (toque) ---- */
@@ -1161,6 +1363,7 @@ function askNotif(){ if('Notification' in window && Notification.permission==='d
 document.getElementById('txDate').value=todayISO();
 render();
 checkReminders();
+let _rz; addEventListener('resize',()=>{clearTimeout(_rz);_rz=setTimeout(render,180);});
 // pede permissão de notificação no 1º toque (gesto do usuário)
 document.body.addEventListener('click',function once(){ askNotif(); document.body.removeEventListener('click',once); },{once:true});
 </script>
