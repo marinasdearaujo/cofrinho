@@ -504,6 +504,12 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
   <input id="cName" type="text" placeholder="Ex: Nubank (Marina), Itaú...">
   <label class="fl">Cor</label>
   <div class="catgrid" id="cColors" style="grid-template-columns:repeat(6,1fr)"></div>
+  <div class="row2">
+    <div><label class="fl">Próxima fatura (R$)</label><input id="cProx" type="text" inputmode="decimal" placeholder="R$ 0,00" oninput="maskMoney(this)"></div>
+    <div><label class="fl">Vence em</label><input id="cVenc" type="date"></div>
+  </div>
+  <label class="fl">Total comprometido em parcelas (R$)</label>
+  <input id="cTotal" type="text" inputmode="decimal" placeholder="R$ 0,00" oninput="maskMoney(this)">
   <button class="btn" style="margin-top:18px" onclick="saveCard()">Salvar cartão</button>
   <button class="btn danger sm" id="cDelete" style="margin-top:10px" onclick="deleteCard()">Excluir</button>
 </div>
@@ -871,6 +877,9 @@ function openCard(c){
   editCard=c||null;
   document.getElementById('cardTitle').textContent=c?'Editar cartão':'Novo cartão';
   document.getElementById('cName').value=c?c.name:'';
+  document.getElementById('cProx').value=c&&c.proxFatura?fmt(c.proxFatura):'';
+  document.getElementById('cVenc').value=c&&c.proxVenc?c.proxVenc:'';
+  document.getElementById('cTotal').value=c&&c.totalAberto?fmt(c.totalAberto):'';
   document.getElementById('cDelete').style.display=c?'flex':'none';
   cColor=c?c.color:CARD_COLORS[0];
   const cg=document.getElementById('cColors');
@@ -881,8 +890,12 @@ function openCard(c){
 function saveCard(){
   const name=document.getElementById('cName').value.trim();
   if(!name){ toast('Dá um nome pro cartão'); return; }
-  if(editCard){ editCard.name=name; editCard.color=cColor; }
-  else{ S.cards.push({id:uid(),name,color:cColor}); }
+  const data={name,color:cColor,
+    proxFatura:parseMoney(document.getElementById('cProx').value),
+    proxVenc:document.getElementById('cVenc').value,
+    totalAberto:parseMoney(document.getElementById('cTotal').value)};
+  if(editCard){ Object.assign(editCard,data); }
+  else{ S.cards.push({id:uid(),faturas:[],...data}); }
   save(); closeSheet(); render(); toast('Cartão salvo 💳');
 }
 function deleteCard(){ if(editCard){ S.cards=S.cards.filter(c=>c.id!==editCard.id); save(); closeSheet(); render(); toast('Cartão removido'); } }
@@ -890,17 +903,18 @@ function openCardById(id){ openCard(S.cards.find(c=>c.id===id)); }
 function renderCardsSummary(){
   const el=document.getElementById('cardsSummary'); if(!el) return;
   if(!S.cards.length){ el.innerHTML=`<div class="card"><div class="empty" style="padding:16px"><span class="em">💳</span>Cadastre seus cartões pra agrupar as parcelas</div></div>`; return; }
-  el.innerHTML=`<div class="card" style="padding:12px">`+S.cards.map(c=>{
-    const parc=S.bills.filter(b=>!b.paid && b.card===c.id && b.pTotal>0);
-    const proxFatura=parc.reduce((a,b)=>a+b.amount,0);                                   // próxima parcela de cada = fatura do próximo mês
-    const devedor=parc.reduce((a,b)=>a+b.amount*(b.pTotal-b.pAtual+1),0);                // total ainda a pagar
-    return `<div class="li" onclick='openCardById("${c.id}")' style="cursor:pointer">
-      <div class="ico" style="background:${c.color}">💳</div>
-      <div class="mid"><div class="t1">${esc(c.name)}</div>
-        <div class="t2">${parc.length} parcelamento(s)${devedor?' • devedor total '+fmtShort(devedor):' • em dia ✨'}</div></div>
-      <div style="text-align:right"><div class="amt">${fmtShort(proxFatura)}</div><div class="t2" style="margin:0">próx. fatura</div></div>
+  el.innerHTML=S.cards.map(c=>{
+    const prox=c.proxFatura||0, tot=c.totalAberto||0, fat=(c.faturas||[]).slice(0,6);
+    return `<div class="card" style="padding:14px;margin-bottom:12px">
+      <div class="li" style="border:none;padding:0 0 ${fat.length?'8px':'0'};cursor:pointer" onclick='openCardById("${c.id}")'>
+        <div class="ico" style="background:${c.color}">💳</div>
+        <div class="mid"><div class="t1">${esc(c.name)}</div>
+          <div class="t2">${c.note?'⚠️ '+esc(c.note):(tot?'comprometido em parcelas '+fmtShort(tot):'em dia ✨')}</div></div>
+        <div style="text-align:right"><div class="amt">${fmt(prox)}</div><div class="t2" style="margin:0">próx. fatura${c.proxVenc?' • vence '+dateLabel(c.proxVenc):''}</div></div>
+      </div>
+      ${fat.length?`<div style="display:flex;gap:6px;overflow-x:auto;padding-top:4px;scrollbar-width:none">${fat.map(f=>`<div style="flex:0 0 auto;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:6px 10px;text-align:center;min-width:66px"><div class="t2" style="margin:0">${f.mes}</div><div style="font-weight:700;font-size:12px">${fmtShort(f.total)}</div></div>`).join('')}</div>`:''}
     </div>`;
-  }).join('')+`</div>`;
+  }).join('');
 }
 
 /* ============ GAMIFICAÇÃO ============ */
