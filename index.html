@@ -891,13 +891,15 @@ function renderCardsSummary(){
   const el=document.getElementById('cardsSummary'); if(!el) return;
   if(!S.cards.length){ el.innerHTML=`<div class="card"><div class="empty" style="padding:16px"><span class="em">💳</span>Cadastre seus cartões pra agrupar as parcelas</div></div>`; return; }
   el.innerHTML=`<div class="card" style="padding:12px">`+S.cards.map(c=>{
-    const open=S.bills.filter(b=>!b.paid && b.card===c.id);
-    const tot=open.reduce((a,b)=>a+b.amount,0);
-    const fut=S.bills.filter(b=>!b.paid && b.card===c.id && b.pTotal>0).reduce((a,b)=>a+b.amount*(b.pTotal-b.pAtual+1),0);
+    const parc=S.bills.filter(b=>!b.paid && b.card===c.id && b.pTotal>0);
+    const proxFatura=parc.reduce((a,b)=>a+b.amount,0);                                   // próxima parcela de cada = fatura do próximo mês
+    const devedor=parc.reduce((a,b)=>a+b.amount*(b.pTotal-b.pAtual+1),0);                // total ainda a pagar
     return `<div class="li" onclick='openCardById("${c.id}")' style="cursor:pointer">
       <div class="ico" style="background:${c.color}">💳</div>
-      <div class="mid"><div class="t1">${esc(c.name)}</div><div class="t2">${open.length} em aberto${fut?' • falta ~'+fmtShort(fut)+' no total':''}</div></div>
-      <div class="amt">${fmtShort(tot)}</div></div>`;
+      <div class="mid"><div class="t1">${esc(c.name)}</div>
+        <div class="t2">${parc.length} parcelamento(s)${devedor?' • devedor total '+fmtShort(devedor):' • em dia ✨'}</div></div>
+      <div style="text-align:right"><div class="amt">${fmtShort(proxFatura)}</div><div class="t2" style="margin:0">próx. fatura</div></div>
+    </div>`;
   }).join('')+`</div>`;
 }
 
@@ -973,8 +975,8 @@ function renderHome(){
     bn.textContent = pct>=100?'Estourou 😬 toque pra ajustar':pct>=80?`${pct}% usado, atenção!`:`${pct}% usado — tranquilo ✨`;
   } else { bv.textContent='—'; bb.querySelector('i').style.width='0%'; bn.textContent='Toque pra definir 🎯'; }
 
-  // próxima conta
-  const open=S.bills.filter(b=>!b.paid).sort((a,b)=>a.due.localeCompare(b.due));
+  // próxima conta (só contas fixas; parcelas de cartão ficam na seção Cartões)
+  const open=S.bills.filter(b=>!b.paid && !b.card).sort((a,b)=>a.due.localeCompare(b.due));
   const nb=open[0];
   document.getElementById('nextBillVal').textContent=nb?fmtShort(nb.amount):'✅';
   document.getElementById('nextBillNote').textContent=nb?`${nb.name} • ${dueText(nb.due)}`:'Tudo em dia ✨';
@@ -1087,8 +1089,8 @@ function mLabel(mk){ const[y,m]=mk.split('-'); return ['jan','fev','mar','abr','
 
 /* ---- CONTAS VIEW ---- */
 function renderBills(){
-  const open=S.bills.filter(b=>!b.paid).sort((a,b)=>a.due.localeCompare(b.due));
-  const paid=S.bills.filter(b=>b.paid).sort((a,b)=>(b.paidDate||'').localeCompare(a.paidDate||''));
+  const open=S.bills.filter(b=>!b.paid && !b.card).sort((a,b)=>a.due.localeCompare(b.due));
+  const paid=S.bills.filter(b=>b.paid && !b.card).sort((a,b)=>(b.paidDate||'').localeCompare(a.paidDate||''));
   const wide=isWide();
   document.getElementById('billsOpen').innerHTML=wide?billsTable(open,false):
     (open.length?open.map(billRow).join(''):`<div class="empty"><span class="em">🎉</span>Sem contas pendentes</div>`);
