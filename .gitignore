@@ -1,0 +1,12 @@
+.DS_Store
+# Dados financeiros pessoais — NUNCA versionar
+Finanças/
+Financas/
+meus-dados.json
+cofrinho-*.json
+*-backup-*.json
+*.csv
+*.pdf
+*.PNG
+*.png
+analise.md
