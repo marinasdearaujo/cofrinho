@@ -348,6 +348,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
   <!-- ===== LANÇAMENTOS ===== -->
   <section id="v-trans" class="view hide">
     <div class="card flat" style="padding:0;background:none;border:none;box-shadow:none">
+      <div class="pills" id="transType"></div>
       <div class="pills" id="transFilter"></div>
     </div>
     <div class="row2" style="margin-bottom:14px">
@@ -514,6 +515,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
   <button class="btn danger sm" id="cDelete" style="margin-top:10px" onclick="deleteCard()">Excluir</button>
 </div>
 
+<div class="sheet" id="sheet-fatura">
+  <div class="grab"></div>
+  <h3 id="fatTitle">Fatura</h3>
+  <div id="fatMeta" class="note" style="margin-top:0"></div>
+  <div id="fatItems"></div>
+</div>
+
 <div class="sheet" id="sheet-goal">
   <div class="grab"></div>
   <h3 id="goalTitle">Nova meta</h3>
@@ -576,6 +584,11 @@ const CATS = [
   {k:'educacao', e:'📚', n:'Educação'},
   {k:'pet',      e:'🐾', n:'Pet'},
   {k:'casa',     e:'🛋️', n:'Casa nova'},
+  {k:'compras',  e:'🛍️', n:'Compras'},
+  {k:'trabalho', e:'💼', n:'Trabalho/PJ'},
+  {k:'financiamento', e:'🏦', n:'Empréstimo'},
+  {k:'transferencia', e:'🔁', n:'Transferências'},
+  {k:'doacao',   e:'⛪', n:'Igreja/Doação'},
   {k:'outros',   e:'✨', n:'Outros'},
 ];
 const INCAT = [
@@ -900,6 +913,18 @@ function saveCard(){
 }
 function deleteCard(){ if(editCard){ S.cards=S.cards.filter(c=>c.id!==editCard.id); save(); closeSheet(); render(); toast('Cartão removido'); } }
 function openCardById(id){ openCard(S.cards.find(c=>c.id===id)); }
+function openFatura(cardId,venc){
+  const c=S.cards.find(x=>x.id===cardId); if(!c) return;
+  const f=(c.faturas||[]).find(x=>x.venc===venc); if(!f) return;
+  document.getElementById('fatTitle').textContent=`${c.name} — ${f.mes}`;
+  document.getElementById('fatMeta').textContent=`${f.venc?'Vence '+dateLabel(f.venc):''} • total ${fmt(f.total)} • ${(f.items||[]).length} lançamentos`;
+  const items=(f.items||[]).slice().sort((a,b)=>b.amount-a.amount);
+  const box=document.getElementById('fatItems');
+  box.innerHTML = items.length? items.map(it=>{const cat=catMap[it.cat]||{e:'✨',n:''};
+    return `<div class="li"><div class="ico">${cat.e}</div><div class="mid"><div class="t1">${esc(it.desc)}${it.parcela?` <span class="tag soon">${it.parcela}</span>`:''}</div><div class="t2">${cat.n}</div></div><div class="amt">${fmt(it.amount)}</div></div>`;}).join('')
+    : `<div class="empty"><span class="em">🧾</span>Sem detalhe de lançamentos${c.note?' — '+esc(c.note):''}</div>`;
+  show('sheet-fatura');
+}
 function renderCardsSummary(){
   const el=document.getElementById('cardsSummary'); if(!el) return;
   if(!S.cards.length){ el.innerHTML=`<div class="card"><div class="empty" style="padding:16px"><span class="em">💳</span>Cadastre seus cartões pra agrupar as parcelas</div></div>`; return; }
@@ -912,7 +937,7 @@ function renderCardsSummary(){
           <div class="t2">${c.note?'⚠️ '+esc(c.note):(tot?'comprometido em parcelas '+fmtShort(tot):'em dia ✨')}</div></div>
         <div style="text-align:right"><div class="amt">${fmt(prox)}</div><div class="t2" style="margin:0">próx. fatura${c.proxVenc?' • vence '+dateLabel(c.proxVenc):''}</div></div>
       </div>
-      ${fat.length?`<div style="display:flex;gap:6px;overflow-x:auto;padding-top:4px;scrollbar-width:none">${fat.map(f=>`<div style="flex:0 0 auto;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:6px 10px;text-align:center;min-width:66px"><div class="t2" style="margin:0">${f.mes}</div><div style="font-weight:700;font-size:12px">${fmtShort(f.total)}</div></div>`).join('')}</div>`:''}
+      ${fat.length?`<div style="display:flex;gap:6px;overflow-x:auto;padding-top:4px;scrollbar-width:none">${fat.map(f=>`<div onclick='openFatura("${c.id}","${f.venc}")' style="flex:0 0 auto;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:6px 10px;text-align:center;min-width:66px;cursor:pointer"><div class="t2" style="margin:0">${f.mes}</div><div style="font-weight:700;font-size:12px">${fmtShort(f.total)}</div></div>`).join('')}<div class="t2" style="align-self:center;padding-left:2px;white-space:nowrap">👆 toque pra ver</div></div>`:''}
     </div>`;
   }).join('');
 }
@@ -1078,20 +1103,26 @@ function txRow(t){
 
 /* ---- EXTRATO ---- */
 let tFilter='all';
+let tType='all';
 function renderTrans(){
+  const tp=document.getElementById('transType');
+  tp.innerHTML=[{k:'all',n:'Tudo'},{k:'income',n:'↑ Entradas'},{k:'expense',n:'↓ Saídas'}]
+    .map(o=>`<div class="pill ${tType===o.k?'on':''}" onclick="setTType('${o.k}')">${o.n}</div>`).join('');
   const pf=document.getElementById('transFilter');
-  const months=[...new Set(S.tx.map(t=>monthKey(t.date)))].sort().reverse().slice(0,6);
-  const opts=[{k:'all',n:'Tudo'},...months.map(mk=>({k:mk,n:mLabel(mk)}))];
+  const months=[...new Set(S.tx.map(t=>monthKey(t.date)))].sort().reverse().slice(0,8);
+  const opts=[{k:'all',n:'Todo mês'},...months.map(mk=>({k:mk,n:mLabel(mk)}))];
   pf.innerHTML=opts.map(o=>`<div class="pill ${tFilter===o.k?'on':''}" onclick="setTF('${o.k}')">${o.n}</div>`).join('');
-  let list = tFilter==='all'?S.tx:S.tx.filter(t=>monthKey(t.date)===tFilter);
-  let inc=0,exp=0; list.forEach(t=>t.type==='income'?inc+=t.amount:exp+=t.amount);
+  let monthList = tFilter==='all'?S.tx:S.tx.filter(t=>monthKey(t.date)===tFilter);
+  let inc=0,exp=0; monthList.forEach(t=>t.type==='income'?inc+=t.amount:exp+=t.amount);
   document.getElementById('tfIn').textContent=fmtShort(inc);
   document.getElementById('tfOut').textContent=fmtShort(exp);
+  const list = tType==='all'?monthList:monthList.filter(t=>t.type===tType);
   const el=document.getElementById('transList');
   if(isWide()) el.innerHTML = txTable(list);
   else el.innerHTML = list.length?list.map(txRow).join(''):`<div class="empty"><span class="em">📭</span>Nada por aqui ainda</div>`;
 }
 function setTF(k){ tFilter=k; renderTrans(); }
+function setTType(k){ tType=k; renderTrans(); }
 function txTable(list){
   if(!list.length) return `<div class="empty"><span class="em">📭</span>Nada por aqui ainda</div>`;
   return `<table class="erp"><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Cartão/Origem</th><th class="r">Valor</th></tr></thead><tbody>`+
