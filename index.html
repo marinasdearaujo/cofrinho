@@ -223,9 +223,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
   #v-home{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;align-items:start}
   #v-home .block{margin:0;min-width:0}
   #v-home .block:nth-child(1){grid-column:span 5}   /* saldo */
-  #v-home .block:nth-child(2){grid-column:span 7}   /* orçamento + próxima conta */
+  #v-home .block:nth-child(2){grid-column:span 7}   /* desafio do mês */
   #v-home .block:nth-child(3){grid-column:span 12}  /* projeção */
-  #v-home .block:nth-child(4){grid-column:span 5}   /* desafio */
+  #v-home .block:nth-child(4){grid-column:span 5}   /* orçamento + próxima conta */
   #v-home .block:nth-child(5){grid-column:span 7}   /* receitas */
   #v-home .block:nth-child(6){grid-column:span 6}   /* contas */
   #v-home .block:nth-child(7){grid-column:span 6}   /* lançamentos */
@@ -311,6 +311,16 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
     </div>
 
     <div class="block">
+      <div class="sec-title">Desafio do mês <a onclick="go('budget')">orçamento →</a></div>
+      <div class="card flat" id="challengeCard"></div>
+    </div>
+
+    <div class="block wide">
+      <div class="sec-title">Projeção dos próximos meses (entra × sai)</div>
+      <div class="card" id="projChart"></div>
+    </div>
+
+    <div class="block">
       <div class="mini">
         <div class="card">
           <div class="mlbl">Orçamento do mês</div>
@@ -324,16 +334,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
           <div class="note" id="nextBillNote">Tudo em dia ✨</div>
         </div>
       </div>
-    </div>
-
-    <div class="block wide">
-      <div class="sec-title">Projeção dos próximos meses (entra × sai)</div>
-      <div class="card" id="projChart"></div>
-    </div>
-
-    <div class="block">
-      <div class="sec-title">Desafio do mês <a onclick="go('budget')">orçamento →</a></div>
-      <div class="card flat" id="challengeCard"></div>
     </div>
 
     <div class="block">
@@ -880,19 +880,23 @@ function receiveIncome(){
   checkIn(); award(8); save(); closeSheet(); render(); toast(`Recebido ${fmtShort(editIncome.amount)}! ✅`);
 }
 function openIncomeById(id){ openIncome(S.incomes.find(i=>i.id===id)); }
+let incomeExpanded=false;
+function toggleIncomes(){ incomeExpanded=!incomeExpanded; renderIncomes(); }
 function renderIncomes(){
   const el=document.getElementById('incomeCard'); if(!el) return;
   if(!S.incomes.length){ el.innerHTML=`<div class="empty"><span class="em">💼</span>Toque em "＋ nova" pra cadastrar salários, freelas e rendas fixas</div>`; return; }
   const total=S.incomes.reduce((a,i)=>a+i.amount,0);
+  const list=incomeExpanded?S.incomes:S.incomes.slice(0,3);
   el.innerHTML=`<div class="li" style="border-bottom:1px solid var(--line);padding-bottom:12px">
       <div class="ico" style="background:rgba(52,224,161,.14)">📥</div>
       <div class="mid"><div class="t1">Previsto entrar por mês</div><div class="t2">${S.incomes.length} fontes de renda</div></div>
       <div class="amt up">${fmtShort(total)}</div></div>`
-    + S.incomes.map(i=>`<div class="li" onclick='openIncomeById("${i.id}")' style="cursor:pointer">
+    + list.map(i=>`<div class="li" onclick='openIncomeById("${i.id}")' style="cursor:pointer">
         <div class="ico">${i.who==='Marina'?'👩':'👨'}</div>
         <div class="mid"><div class="t1">${esc(i.source)} ${i.confirmed?'':'<span class="tag soon">provisório</span>'}</div>
         <div class="t2">${esc(i.who||'')}${i.note?' • '+esc(i.note):''}</div></div>
-        <div class="amt up">${fmtShort(i.amount)}</div></div>`).join('');
+        <div class="amt up">${fmtShort(i.amount)}</div></div>`).join('')
+    + (S.incomes.length>3?`<div style="text-align:center;padding-top:12px"><button class="linkbtn" onclick="toggleIncomes()">${incomeExpanded?'ver menos ▴':`ver todas as ${S.incomes.length} fontes ▾`}</button></div>`:'');
 }
 
 /* ---- CARTÕES ---- */
