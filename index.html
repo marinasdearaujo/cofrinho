@@ -1030,7 +1030,7 @@ function renderHome(){
   const open=S.bills.filter(b=>!b.paid && !b.card).sort((a,b)=>a.due.localeCompare(b.due));
   const nb=open[0];
   document.getElementById('nextBillVal').textContent=nb?fmtShort(nb.amount):'✅';
-  document.getElementById('nextBillNote').textContent=nb?`${nb.name} • ${dueText(nb.due)}`:'Tudo em dia ✨';
+  document.getElementById('nextBillNote').innerHTML=nb?`${esc(nb.name)} • ${dueText(nb.due)}`:'Tudo em dia ✨';
 
   // desafio do mês
   renderChallenge(m);
