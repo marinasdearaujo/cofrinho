@@ -222,14 +222,14 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
   /* dashboard em grade estruturada (12 colunas) */
   #v-home{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;align-items:start}
   #v-home .block{margin:0;min-width:0}
-  #v-home .block:nth-child(1){grid-column:span 5}   /* saldo */
-  #v-home .block:nth-child(2){grid-column:span 7}   /* desafio do mês */
-  #v-home .block:nth-child(3){grid-column:span 12}  /* projeção */
-  #v-home .block:nth-child(4){grid-column:span 5}   /* orçamento + próxima conta */
-  #v-home .block:nth-child(5){grid-column:span 7}   /* receitas */
+  #v-home .block:nth-child(1){grid-column:span 4}   /* saldo */
+  #v-home .block:nth-child(2){grid-column:span 4}   /* orçamento + próxima conta */
+  #v-home .block:nth-child(3){grid-column:span 4}   /* desafio do mês */
+  #v-home .block:nth-child(4){grid-column:span 12}  /* projeção */
+  #v-home .block:nth-child(5){grid-column:span 6}   /* receitas */
   #v-home .block:nth-child(6){grid-column:span 6}   /* contas */
   #v-home .block:nth-child(7){grid-column:span 6}   /* lançamentos */
-  #v-home .block:nth-child(8){grid-column:span 12}  /* donut */
+  #v-home .block:nth-child(8){grid-column:span 6}   /* donut */
   #v-home .card,#v-home .mini{margin:0}
   #v-home .sec-title{margin:0 2px 10px}
   #v-home .hero{height:100%}
@@ -311,16 +311,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
     </div>
 
     <div class="block">
-      <div class="sec-title">Desafio do mês <a onclick="go('budget')">orçamento →</a></div>
-      <div class="card flat" id="challengeCard"></div>
-    </div>
-
-    <div class="block wide">
-      <div class="sec-title">Projeção dos próximos meses (entra × sai)</div>
-      <div class="card" id="projChart"></div>
-    </div>
-
-    <div class="block">
       <div class="mini">
         <div class="card">
           <div class="mlbl">Orçamento do mês</div>
@@ -334,6 +324,15 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
           <div class="note" id="nextBillNote">Tudo em dia ✨</div>
         </div>
       </div>
+    </div>
+
+    <div class="block">
+      <div class="card" id="challengeCard"></div>
+    </div>
+
+    <div class="block wide">
+      <div class="sec-title">Projeção dos próximos meses (entra × sai)</div>
+      <div class="card" id="projChart"></div>
     </div>
 
     <div class="block">
@@ -1078,12 +1077,13 @@ function renderProjection(){
 }
 function renderChallenge(m){
   const el=document.getElementById('challengeCard');
+  const head=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div class="mlbl">🏆 Desafio do mês</div><span class="linkbtn" onclick="go('budget')">orçamento →</span></div>`;
   // desafio: ficar dentro do orçamento OU mês no azul
   if(S.budget>0){
     const left=S.budget-m.out;
     const pct=Math.min(100,Math.round(m.out/S.budget*100));
     const ok=left>=0;
-    el.innerHTML=`
+    el.innerHTML=head+`
       <div class="li" style="border:none;padding:4px 0">
         <div class="ico" style="background:rgba(124,92,255,.16)">🏁</div>
         <div class="mid"><div class="t1">Mês sem furar o orçamento</div>
@@ -1093,7 +1093,7 @@ function renderChallenge(m){
       <div class="bar ${pct>=80?'warn':''}"><i style="width:${pct}%"></i></div>`;
   } else {
     const ok=m.in>m.out&&m.in>0;
-    el.innerHTML=`
+    el.innerHTML=head+`
       <div class="li" style="border:none;padding:4px 0">
         <div class="ico" style="background:rgba(52,224,161,.14)">💙</div>
         <div class="mid"><div class="t1">Terminar o mês no azul</div>
