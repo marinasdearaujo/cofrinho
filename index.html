@@ -75,6 +75,23 @@ header{padding:20px 16px 8px;max-width:520px;margin:0 auto;position:sticky;top:0
 .bar > i{display:block;height:100%;border-radius:20px;background:var(--grad);transition:width .6s cubic-bezier(.2,.8,.2,1)}
 .bar.warn > i{background:linear-gradient(90deg,#ffa94d,#ff6b7a)}
 
+/* ESCADINHA DA POUPANÇA */
+.ladder{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin-top:14px}
+.ladder .st{background:var(--card2);border:1px solid var(--line);border-radius:13px;padding:10px 5px;text-align:center;cursor:pointer;transition:.15s;position:relative}
+.ladder .st:hover{border-color:rgba(124,92,255,.55)}
+.ladder .st:active{transform:scale(.96)}
+.ladder .st .slbl{font-size:10px;color:var(--mut2);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.ladder .st .sval{font-size:15px;font-weight:800;margin-top:3px;letter-spacing:-.3px}
+.ladder .st.done{background:rgba(52,224,161,.12);border-color:rgba(52,224,161,.45)}
+.ladder .st.done .sval{color:var(--green)}
+.ladder .st.done:after{content:'✓';position:absolute;top:3px;right:7px;font-size:10px;color:var(--green);font-weight:800}
+.ladder .st.now{border-color:var(--pur);box-shadow:0 0 0 1px rgba(124,92,255,.4),0 8px 20px rgba(124,92,255,.18)}
+.ladder .st.past{opacity:.45}
+.lstat{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+.lstat > div{background:var(--card2);border:1px solid var(--line);border-radius:13px;padding:11px 6px;text-align:center}
+.lstat .lv{font-size:16.5px;font-weight:800;letter-spacing:-.3px}
+.lstat .ll{font-size:10.5px;color:var(--mut2);font-weight:600;margin-top:3px;line-height:1.25}
+
 /* LIST ITEMS */
 .li{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line)}
 .li:last-child{border-bottom:none}
@@ -225,11 +242,12 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
   #v-home .block:nth-child(1){grid-column:span 4}   /* saldo */
   #v-home .block:nth-child(2){grid-column:span 4}   /* orçamento + próxima conta */
   #v-home .block:nth-child(3){grid-column:span 4}   /* desafio do mês */
-  #v-home .block:nth-child(4){grid-column:span 12}  /* projeção */
-  #v-home .block:nth-child(5){grid-column:span 6}   /* receitas */
-  #v-home .block:nth-child(6){grid-column:span 6}   /* contas */
-  #v-home .block:nth-child(7){grid-column:span 6}   /* lançamentos */
-  #v-home .block:nth-child(8){grid-column:span 6}   /* donut */
+  #v-home .block:nth-child(4){grid-column:span 12}  /* escadinha */
+  #v-home .block:nth-child(5){grid-column:span 12}  /* projeção */
+  #v-home .block:nth-child(6){grid-column:span 6}   /* receitas */
+  #v-home .block:nth-child(7){grid-column:span 6}   /* contas */
+  #v-home .block:nth-child(8){grid-column:span 6}   /* lançamentos */
+  #v-home .block:nth-child(9){grid-column:span 6}   /* donut */
   #v-home .card,#v-home .mini{margin:0}
   #v-home .sec-title{margin:0 2px 10px}
   #v-home .hero{height:100%}
@@ -330,6 +348,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
       <div class="card" id="challengeCard"></div>
     </div>
 
+    <div class="block">
+      <div class="card" id="ladderHome"></div>
+    </div>
+
     <div class="block wide">
       <div class="sec-title">Projeção dos próximos meses (entra × sai)</div>
       <div class="card" id="projChart"></div>
@@ -389,7 +411,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
 
   <!-- ===== METAS ===== -->
   <section id="v-goals" class="view hide">
-    <button class="btn" onclick="openGoal()" style="margin-bottom:14px">＋ Nova meta / recompensa</button>
+    <div class="card" id="ladderCard"></div>
+    <div class="sec-title" style="margin-top:20px">Metas & sonhos <a onclick="openGoal()">＋ nova meta</a></div>
     <div id="goalsList"></div>
   </section>
 
@@ -561,6 +584,24 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
   <button class="btn" style="margin-top:16px" onclick="saveDeposit()">Guardar 💰</button>
 </div>
 
+<div class="sheet" id="sheet-ladder">
+  <div class="grab"></div>
+  <h3>Ajustar a escadinha 🪜</h3>
+  <div class="note" style="margin:0 0 4px">Você escolhe o degrau inicial e o quanto sobe por mês. O combinado é nunca pular um mês, mesmo que seja pouco.</div>
+  <label class="fl">Quanto guardar no 1º mês</label>
+  <input id="lStart" type="text" inputmode="decimal" placeholder="R$ 10,00" oninput="maskMoney(this)">
+  <label class="fl">Aumentar quanto a cada mês</label>
+  <input id="lStep" type="text" inputmode="decimal" placeholder="R$ 5,00" oninput="maskMoney(this)">
+  <label class="fl">Mês de início</label>
+  <input id="lMonth" type="month">
+  <label class="fl">Por quantos meses</label>
+  <input id="lMonths" type="number" min="3" max="60" step="1" placeholder="24">
+  <label class="fl">Somar automaticamente na meta</label>
+  <select id="lGoal"></select>
+  <div id="lPreview" class="note"></div>
+  <button class="btn" style="margin-top:16px" onclick="saveLadder()">Salvar escadinha</button>
+</div>
+
 <div class="sheet" id="sheet-budget">
   <div class="grab"></div>
   <h3>Orçamento do mês</h3>
@@ -634,12 +675,16 @@ const BADGES = [
   {k:'log50',   e:'📝', n:'Disciplinada',      d:'50 lançamentos'},
   {k:'balanced',e:'⚖️', n:'Mês equilibrado',   d:'Tudo no verde'},
   {k:'reward',  e:'🍷', n:'Recompensa!',        d:'Mês fechado no verde'},
+  {k:'ladder1', e:'🪜', n:'Primeiro degrau',    d:'1º mês da escadinha'},
+  {k:'ladder3', e:'🧗', n:'Subindo',            d:'3 degraus seguidos'},
+  {k:'ladder6', e:'🏔️', n:'Meio ano firme',     d:'6 degraus seguidos'},
+  {k:'ladder12',e:'👑', n:'Um ano sem falhar',  d:'12 degraus seguidos'},
 ];
 
 const DEFAULT = {
   tx:[], bills:[], goals:[], incomes:[], cards:[], budget:0, catBudgets:{}, projection:[],
   xp:0, streak:0, lastDay:null, badges:[], rewards:[], balancedMonths:[],
-  eye:true, seeded:false
+  ladder:null, eye:true, seeded:false
 };
 let S = load();
 
@@ -841,6 +886,139 @@ function saveDeposit(){
   }
 }
 
+/* ---- ESCADINHA DA POUPANÇA ---- */
+function ymAdd(ym,n){ const [y,m]=ym.split('-').map(Number); const d=new Date(y,m-1+n,1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function ymLabel(ym){ const [y,m]=ym.split('-').map(Number); const s=new Date(y,m-1,1).toLocaleDateString('pt-BR',{month:'short'}).replace('.',''); return s+'/'+String(y).slice(2); }
+function getLadder(){
+  if(!S.ladder){
+    const res=S.goals.find(g=>/reserva/i.test(g.name));
+    S.ladder={start:10,step:5,startMonth:ymAdd(curMonth(),1),months:24,done:{},goalId:res?res.id:null};
+  }
+  if(!S.ladder.done) S.ladder.done={};
+  return S.ladder;
+}
+function ladderPlan(){
+  const L=getLadder(), out=[];
+  for(let i=0;i<L.months;i++){
+    const key=ymAdd(L.startMonth,i);
+    out.push({key,i,label:ymLabel(key),value:L.start+L.step*i,done:L.done[key]!=null,saved:L.done[key]||0});
+  }
+  return out;
+}
+function ladderStreak(){
+  const plan=ladderPlan(); let s=0;
+  for(const p of plan){ if(p.done) s++; else if(p.key<=curMonth()) s=0; else break; }
+  return s;
+}
+function renderLadder(){
+  const el=document.getElementById('ladderCard'); if(!el) return;
+  const L=getLadder(), plan=ladderPlan(), cm=curMonth();
+  const saved=plan.reduce((a,p)=>a+p.saved,0);
+  const total=plan.reduce((a,p)=>a+p.value,0);
+  const y1=plan.slice(0,12).reduce((a,p)=>a+p.value,0);
+  const doneN=plan.filter(p=>p.done).length;
+  const pct=total?Math.min(100,Math.round(saved/total*100)):0;
+  const next=plan.find(p=>!p.done && p.key>=cm) || plan.find(p=>!p.done);
+  const goal=L.goalId?S.goals.find(g=>g.id===L.goalId):null;
+  const st=ladderStreak();
+  el.innerHTML=`
+    <div class="li" style="border:none;padding:0 0 8px">
+      <div class="ico" style="font-size:22px">🪜</div>
+      <div class="mid">
+        <div class="t1">Escadinha da Poupança</div>
+        <div class="t2">${fmt(L.start)} no 1º mês, +${fmt(L.step)} por mês • ${L.months} meses${goal?' • vai pra '+esc(goal.emoji+' '+goal.name):''}</div>
+      </div>
+      <button class="iconbtn" onclick="openLadder()">⚙️</button>
+    </div>
+    <div class="bar"><i style="width:${pct}%"></i></div>
+    <div class="lstat">
+      <div><div class="lv" style="color:var(--green)">${fmt(saved)}</div><div class="ll">guardado até agora</div></div>
+      <div><div class="lv">${doneN}/${L.months}</div><div class="ll">degraus subidos</div></div>
+      <div><div class="lv">🔥 ${st}</div><div class="ll">meses seguidos</div></div>
+    </div>
+    ${next?`<button class="btn" style="margin-top:12px" onclick="ladderMark('${next.key}')">Subi o degrau de ${next.label} — guardar ${fmt(next.value)} 🐖</button>`
+          :`<div class="note" style="text-align:center;margin-top:12px">Escadinha inteira concluída 👑 hora de começar outra maior</div>`}
+    <div class="ladder">
+      ${plan.map(p=>`<div class="st ${p.done?'done':''} ${!p.done&&p.key===(next||{}).key?'now':''} ${!p.done&&p.key<cm?'past':''}"
+        onclick="ladderMark('${p.key}')" title="${p.done?'Clique pra desmarcar':'Clique pra marcar como guardado'}">
+        <div class="slbl">${p.label}</div><div class="sval">${p.done?fmt(p.saved).replace('R$ ',''):p.value.toLocaleString('pt-BR')}</div>
+      </div>`).join('')}
+    </div>
+    <div class="note">No fim de 12 meses: <b>${fmt(y1)}</b> • no fim dos ${L.months} meses: <b>${fmt(total)}</b>. O último degrau é ${fmt(L.start+L.step*(L.months-1))}/mês.<br>
+    Isso aqui é o <b>piso</b>, o valor que você nunca deixa de guardar. Em mês que sobrar, joga o extra em cima com o botão “Guardar” da meta.</div>`;
+}
+function renderLadderHome(){
+  const el=document.getElementById('ladderHome'); if(!el) return;
+  const L=getLadder(), plan=ladderPlan(), cm=curMonth();
+  const saved=plan.reduce((a,p)=>a+p.saved,0);
+  const total=plan.reduce((a,p)=>a+p.value,0);
+  const pct=total?Math.min(100,Math.round(saved/total*100)):0;
+  const next=plan.find(p=>!p.done && p.key>=cm) || plan.find(p=>!p.done);
+  const doneThis=L.done[cm]!=null;
+  el.innerHTML=`
+    <div class="li" style="border:none;padding:0 0 8px">
+      <div class="ico" style="font-size:22px">🪜</div>
+      <div class="mid">
+        <div class="t1">Escadinha da Poupança ${doneThis?'<span class="tag ok">mês pago ✓</span>':''}</div>
+        <div class="t2">${fmt(saved)} guardados • ${plan.filter(p=>p.done).length} de ${L.months} degraus</div>
+      </div>
+      <a class="linkbtn" onclick="go('goals')">ver ↗</a>
+    </div>
+    <div class="bar"><i style="width:${pct}%"></i></div>
+    ${next&&!doneThis?`<button class="btn sm" style="margin-top:12px" onclick="ladderMark('${next.key}')">Guardar ${fmt(next.value)} de ${next.label} 🐖</button>`
+      :`<div class="note" style="text-align:center;margin-top:10px">${next?`Próximo degrau: ${fmt(next.value)} em ${next.label}`:'Escadinha concluída 👑'}</div>`}`;
+}
+function ladderMark(key){
+  const L=getLadder(), plan=ladderPlan(), p=plan.find(x=>x.key===key); if(!p) return;
+  const goal=L.goalId?S.goals.find(g=>g.id===L.goalId):null;
+  if(p.done){
+    const val=L.done[key]; delete L.done[key];
+    if(goal) goal.current=Math.max(0,goal.current-val);
+    save(); render(); toast('Degrau desmarcado');
+    return;
+  }
+  L.done[key]=p.value;
+  if(goal) goal.current+=p.value;
+  checkIn(); award(25); unlock('ladder1');
+  const st=ladderStreak();
+  if(st>=3) unlock('ladder3');
+  if(st>=6) unlock('ladder6');
+  if(st>=12) unlock('ladder12');
+  const totalSaved=S.goals.reduce((a,g)=>a+g.current,0);
+  if(totalSaved>=1000) unlock('save1k');
+  save(); render(); celebrate();
+  toast(`Degrau de ${p.label} subido! ${fmt(p.value)} guardados 🪜 +25 XP`);
+}
+function openLadder(){
+  const L=getLadder();
+  document.getElementById('lStart').value=fmt(L.start);
+  document.getElementById('lStep').value=fmt(L.step);
+  document.getElementById('lMonth').value=L.startMonth;
+  document.getElementById('lMonths').value=L.months;
+  document.getElementById('lGoal').innerHTML='<option value="">Não somar em nenhuma meta</option>'+
+    S.goals.map(g=>`<option value="${g.id}" ${g.id===L.goalId?'selected':''}>${esc(g.emoji+' '+g.name)}</option>`).join('');
+  ladderPreview();
+  ['lStart','lStep','lMonths'].forEach(id=>document.getElementById(id).oninput=function(){ if(id!=='lMonths') maskMoney(this); ladderPreview(); });
+  show('sheet-ladder');
+}
+function ladderPreview(){
+  const s=parseMoney(document.getElementById('lStart').value)||0;
+  const k=parseMoney(document.getElementById('lStep').value)||0;
+  const n=Math.max(1,parseInt(document.getElementById('lMonths').value)||1);
+  const t=n*s+k*n*(n-1)/2;
+  const t12=12*s+k*66;
+  document.getElementById('lPreview').innerHTML=`Assim você junta <b>${fmt(t)}</b> em ${n} meses (${fmt(t12)} no 1º ano) e termina guardando ${fmt(s+k*(n-1))} por mês.`;
+}
+function saveLadder(){
+  const L=getLadder();
+  L.start=parseMoney(document.getElementById('lStart').value)||10;
+  L.step=parseMoney(document.getElementById('lStep').value)||0;
+  L.startMonth=document.getElementById('lMonth').value||curMonth();
+  L.months=Math.min(60,Math.max(3,parseInt(document.getElementById('lMonths').value)||24));
+  L.goalId=document.getElementById('lGoal').value||null;
+  save(); closeSheet(); render(); toast('Escadinha ajustada 🪜');
+}
+
 /* ---- ORÇAMENTO ---- */
 function openBudget(){ document.getElementById('budgetInput').value=S.budget?fmt(S.budget):''; show('sheet-budget'); }
 function saveBudget(){
@@ -987,7 +1165,7 @@ function render(){
   const h=new Date().getHours();
   document.getElementById('greet').textContent = (h<12?'Bom dia':h<18?'Boa tarde':'Boa noite')+', Marina 💜';
 
-  if(cur==='home'){ renderHome(); renderIncomes(); renderProjection(); }
+  if(cur==='home'){ renderHome(); renderIncomes(); renderProjection(); renderLadderHome(); }
   if(cur==='trans') renderTrans();
   if(cur==='bills'){ renderCardsSummary(); renderBills(); }
   if(cur==='budget') renderBudget();
@@ -1200,6 +1378,7 @@ function openBillById(id){ openBill(S.bills.find(b=>b.id===id)); }
 
 /* ---- METAS VIEW ---- */
 function renderGoals(){
+  renderLadder();
   const el=document.getElementById('goalsList');
   if(!S.goals.length){ el.innerHTML=`<div class="card"><div class="empty"><span class="em">🎯</span>Crie sua primeira meta!</div></div>`; return; }
   el.innerHTML=S.goals.map(g=>{
