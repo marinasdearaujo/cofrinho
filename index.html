@@ -205,6 +205,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
 .iconbtn{background:var(--card2);border:1px solid var(--line);width:34px;height:34px;border-radius:10px;display:grid;place-items:center;cursor:pointer;font-size:15px}
 .note{font-size:12px;color:var(--mut2);line-height:1.5;margin-top:6px}
 .linkbtn{color:var(--cyan);font-size:13px;font-weight:600;cursor:pointer;background:none;border:none;padding:0}
+.sortbar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12px;color:var(--mut2);font-weight:600;padding:2px 2px 12px}
+.sortchip{padding:5px 11px;border-radius:20px;background:var(--card2);border:1px solid var(--line);color:var(--mut);cursor:pointer;font-size:12px;font-weight:700;transition:.15s}
+.sortchip.on{background:rgba(124,92,255,.16);border-color:var(--pur);color:var(--txt)}
 
 /* ===== SIDEBAR (desktop) ===== */
 #sidebar{display:none}
@@ -277,6 +280,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--pur)}
   table.erp tbody tr:hover td{background:var(--card2)}
   table.erp td.r,table.erp th.r{text-align:right;font-weight:700;white-space:nowrap}
   table.erp td.c,table.erp th.c{text-align:center}
+  table.erp th.sortable{cursor:pointer;user-select:none;white-space:nowrap;transition:color .15s}
+  table.erp th.sortable:hover{color:var(--cyan)}
   table.erp .mut{color:var(--mut)}
   .tablecard{padding:6px 6px}
 }
@@ -1320,6 +1325,19 @@ function txRow(t){
 /* ---- EXTRATO ---- */
 let tFilter='all';
 let tType='all';
+let tSort={key:'date',dir:'desc'};
+function sortTx(list){
+  const k=tSort.key, dir=tSort.dir==='asc'?1:-1;
+  const val=t=> k==='amount'?(t.type==='income'?t.amount:-t.amount)
+    : k==='desc'?(t.desc||(catMap[t.cat]||{}).n||'').toLowerCase()
+    : k==='cat'?((catMap[t.cat]||{}).n||'').toLowerCase()
+    : t.date;
+  return [...list].sort((a,b)=>{const va=val(a),vb=val(b); if(va<vb)return -1*dir; if(va>vb)return 1*dir;
+    // desempate estável por data desc
+    return a.date<b.date?1:a.date>b.date?-1:0;});
+}
+function setSort(k){ if(tSort.key===k) tSort.dir=tSort.dir==='asc'?'desc':'asc'; else tSort={key:k,dir:k==='date'||k==='amount'?'desc':'asc'}; renderTrans(); }
+const sortArrow=k=> tSort.key===k?(tSort.dir==='asc'?' ▲':' ▼'):'';
 function renderTrans(){
   const tp=document.getElementById('transType');
   tp.innerHTML=[{k:'all',n:'Tudo'},{k:'income',n:'↑ Entradas'},{k:'expense',n:'↓ Saídas'}]
@@ -1332,16 +1350,26 @@ function renderTrans(){
   let inc=0,exp=0; monthList.forEach(t=>t.type==='income'?inc+=t.amount:exp+=t.amount);
   document.getElementById('tfIn').textContent=fmtShort(inc);
   document.getElementById('tfOut').textContent=fmtShort(exp);
-  const list = tType==='all'?monthList:monthList.filter(t=>t.type===tType);
+  const list = sortTx(tType==='all'?monthList:monthList.filter(t=>t.type===tType));
   const el=document.getElementById('transList');
   if(isWide()) el.innerHTML = txTable(list);
-  else el.innerHTML = list.length?list.map(txRow).join(''):`<div class="empty"><span class="em">📭</span>Nada por aqui ainda</div>`;
+  else el.innerHTML = mobileSortBar() + (list.length?list.map(txRow).join(''):`<div class="empty"><span class="em">📭</span>Nada por aqui ainda</div>`);
+}
+function mobileSortBar(){
+  const opt=[{k:'date',n:'Data'},{k:'amount',n:'Valor'},{k:'desc',n:'Nome'}];
+  return `<div class="sortbar">Ordenar:${opt.map(o=>`<span class="sortchip ${tSort.key===o.k?'on':''}" onclick="setSort('${o.k}')">${o.n}${sortArrow(o.k)}</span>`).join('')}</div>`;
 }
 function setTF(k){ tFilter=k; renderTrans(); }
 function setTType(k){ tType=k; renderTrans(); }
 function txTable(list){
   if(!list.length) return `<div class="empty"><span class="em">📭</span>Nada por aqui ainda</div>`;
-  return `<table class="erp"><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Cartão/Origem</th><th class="r">Valor</th></tr></thead><tbody>`+
+  return `<table class="erp"><thead><tr>`+
+    `<th class="sortable" onclick="setSort('date')">Data${sortArrow('date')}</th>`+
+    `<th class="sortable" onclick="setSort('desc')">Descrição${sortArrow('desc')}</th>`+
+    `<th class="sortable" onclick="setSort('cat')">Categoria${sortArrow('cat')}</th>`+
+    `<th>Cartão/Origem</th>`+
+    `<th class="r sortable" onclick="setSort('amount')">Valor${sortArrow('amount')}</th>`+
+    `</tr></thead><tbody>`+
     list.map(t=>{const c=catMap[t.cat]||{e:'✨',n:'Outros'};const inc=t.type==='income';
       return `<tr onclick='editTx("${t.id}")'><td class="mut">${dateLabel(t.date)}</td><td>${esc(t.desc||c.n)}</td><td>${c.e} ${c.n}</td><td class="mut">${t.card?esc(cardName(t.card)):'—'}</td><td class="r ${inc?'up':'down'}">${inc?'+':'−'} ${fmt(t.amount)}</td></tr>`;}).join('')+
     `</tbody></table>`;
